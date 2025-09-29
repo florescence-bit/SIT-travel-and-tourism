@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tourist Registration & ID Generator — Demo</title>
+  <style>
+    /* === ROOT & GLOBAL STYLES (from both originals) === */
+    :root{
+      --bg:#eef2ff; /* Used in first code block */
+      --card:#ffffff;
+      --muted:#9aa3b2; /* Slightly adjusted to match second block's muted tone */
+      --accent:#0b0f1a;
+      --primary:#0b1f73;
+      --pill:#eef0ff;
+      --radius:12px;
+      --shadow: 0 6px 18px rgba(12,18,40,0.06);
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#f7f7ff 60%);
+      color:var(--accent);
+      padding:28px;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* === FORM 1 (Registration) STYLES === */
+    .top-cards{display:flex;gap:18px;margin-bottom:18px}
+    .card{background:var(--card);flex:1;padding:18px;border-radius:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+    .card .num{font-weight:700;font-size:20px}
+    .card .label{color:var(--muted);font-size:13px}
+    .tabs{display:flex;gap:8px;background:transparent;padding:10px;margin:10px 0 18px}
+    .tab {
+      background: var(--pill);
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      border: none;
+      outline: none;
+    }
+    .tab.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(12,18,40,0.08);
+    }
+
+    .form-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:20px;}
+    h2{margin:0 0 6px;font-size:16px}
+    p.lead{margin:0 0 18px;color:var(--muted);font-size:13px}
+
+    .section{border:1px solid #eef1fb;border-radius:10px;padding:14px;margin-bottom:14px}
+    .section-title{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:var(--muted);font-weight:600}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+    label{display:block;font-size:13px;margin-bottom:6px;color:#334155}
+    input[type="text"], input[type="email"], input[type="date"], select, input[type="file"]{
+      width:100%;padding:10px;border-radius:8px;border:1px solid #eceef2;background:#f8f8fb;
+    }
+    .muted{color:var(--muted);font-size:13px}
+
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid #e6e9f5;color:var(--primary);font-weight:600}
+
+    .add-row{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px dashed #e3e6f6;background:transparent;color:var(--primary);cursor:pointer}
+
+    .itinerary, .emergency{display:flex;flex-direction:column;gap:10px}
+    .item{display:grid;grid-template-columns: 1fr 160px 140px auto;gap:10px;align-items:center}
+    .item .trash{background:transparent;border:none;color:#d34f4f;font-size:18px;cursor:pointer}
+
+    .footer{display:flex;justify-content:center;padding:16px 0;margin-top:6px}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(6,10,20,0.45);display:flex;align-items:center;justify-content:center;z-index:40}
+    .modal{background:var(--card);padding:18px;border-radius:12px;max-width:720px;width:92%;box-shadow:0 18px 40px rgba(2,6,23,0.32)}
+    pre{background:#0b1020;color:#dfe9ff;padding:12px;border-radius:8px;overflow:auto}
+
+    /* === FORM 2 (ID Generator) STYLES === */
+    .id-generator-section {
+      background: var(--bg);
+      padding: 40px 0;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 70vh;
+    }
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 420px;
+      gap:20px;
+      padding: 18px;
+    }
+    .panel{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 8px 20px rgba(12,18,40,0.06)}
+
+    /* ID Card Styles */
+    .id-card {
+      width: 380px;
+      padding: 28px 22px 22px 22px;
+      border-radius: 16px;
+      background: linear-gradient(180deg,#fff,#f7faff 80%);
+      box-shadow: 0 12px 30px rgba(8,12,30,0.10);
+      border: 1px solid #e6eaf8;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .id-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    .logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg,#0b67ff,#8a5cff);
+      border-radius: 10px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+    }
+    .id-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .id-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .id-photo {
+      width: 84px;
+      height: 84px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #eef2ff;
+      margin-bottom: 18px;
+      margin-top: 8px;
+    }
+    .id-details {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      row-gap: 12px;
+      column-gap: 0;
+      margin-top: 8px;
+      margin-bottom: 10px;
+      padding: 0;
+    }
+    .id-label {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 15px;
+      text-align: left;
+      padding-right: 8px;
+    }
+    .id-value {
+      font-size: 15px;
+      color: #222;
+      text-align: left;
+      word-break: break-word;
+    }
+    .qr-meta-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .qr {
+      margin: 0;
+      min-width: 96px;
+      min-height: 96px;
+      background: #fff;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #f0f2fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 0;
+      align-self: center;
+    }
+    #downloadBtn {
+      margin-top: 18px;
+      width: 100%;
+      font-size: 16px;
+      padding: 12px 0;
+      border-radius: 8px;
+    }
+    @media (max-width: 500px) {
+      .id-card {
+        width: 98vw;
+        min-width: 0;
+        padding: 12px 4vw;
+      }
+      .id-details {
+        grid-template-columns: 1fr 1fr;
+      }
+      .qr-meta-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      #downloadBtn {
+        font-size: 15px;
+        padding: 10px 0;
+      }
+    }
+    /* Responsive adjustments */
+    @media (max-width:1100px){
+      .wrap{grid-template-columns:1fr}
+      .id-card{margin:0 auto}
+      .container{padding: 20px;}
+    }
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .row-3{grid-template-columns:1fr}
+      .item{grid-template-columns:1fr 120px 120px auto}
+      .top-cards{flex-direction:column}
+    }
+    #mainhead{
+      text-align: center;
+    }
+    #welcomeSection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg,#eef2ff 60%,#f7f7ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      min-height: 100vh;
+      min-width: 100vw;
+      transition: opacity 0.5s;
+    }
+    #welcomeSection.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .welcome-content {
+      max-width: 400px;
+      width: 90vw;
+      margin: 0 auto;
+      text-align: center;
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 18px 28px 18px;
+      position: relative;
+    }
+    .welcome-content img {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 16px;
+      margin: 24px 0;
+      background: #f7f7ff;
+      box-shadow: none; /* Removed shadow */
+    }
+    .welcome-content h2 {
+      margin-top: 12px;
+      margin-bottom: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .welcome-content .btn {
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    .welcome-content .btn.ghost {
+      background: transparent;
+      border: 2px solid #e6e9f5;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .welcome-content p {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    /* Sidebar styles (REMOVED) */
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="top-cards">
+      <div class="card"><div style="flex:1"><div class="num" id="stat-tourists">0</div><div class="label">Registered Tourists</div></div></div>
+      <div class="card"><div style="flex:1"><div class="num" id="stat-ids">0</div><div class="label">Active IDs</div></div></div>
+      <div class="card"><div style="flex:1"><div class="num" id="stat-checkins">0</div><div class="label">Check-ins</div></div></div>
+      <div class="card"><div style="flex:1"><div class="num" id="stat-alerts">0</div><div class="label">Active Alerts</div></div></div>
+    </div>
+
+    <!-- Add after your top-cards, before tabs -->
+    <div id="userBanner" style="display:none; margin-bottom:18px;">
+      <div class="panel" style="background:#eaf7ea;color:#2e7d32;text-align:center;">
+        <strong>Welcome, <span id="userName">Tourist</span>!</strong>
+        <span style="margin-left:12px;">Explore safety tips and your dashboard below.</span>
+        <button id="logoutBtn" class="btn ghost" style="float:right;">Logout</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="display:none;">
+      <button class="tab active" data-tab="registration">Registration</button>
+      <button class="tab" data-tab="digitalid">Digital ID</button>
+      <button class="tab" data-tab="checkin">Check-in</button>
+      <button class="tab" data-tab="alerts">Alerts</button>
+      <!-- Add to tabs -->
+      <button class="tab" data-tab="resources">Safety & Research</button>
+    </div>
+
+    <div class="form-card" id="registrationForm" style="display:none;">
+      <h2>1. Tourist Registration & ID Details</h2>
+      <p class="lead">Fill out registration details and provide required photo/DOB/Gender to generate the Digital ID in one step.</p>
+
+      <form id="regForm">
+        <div class="section">
+          <div class="section-title">👤 Basic Information</div>
+          <div class="grid">
+            <div><label>Full Name *</label><input type="text" id="fullName" placeholder="Enter full name" required></div>
+            <div><label>Email Address *</label><input type="email" id="email" placeholder="Enter email address" required></div>
+            <div><label>Phone Number *</label><input type="text" id="phone" placeholder="+91 XXXXXXXXXX" required></div>
+            <div><label>Entry Point</label><select id="entryPoint"><option value="">Select entry point</option><option>Airport</option><option>Railway Station</option><option>Hotel</option><option>Border Check-post</option></select></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📄 KYC Information</div>
+          <div class="grid">
+            <div><label>Document Type *</label><select id="docType" required><option value="">Select document type</option><option>Passport</option><option>Aadhaar</option><option>Driving License</option></select></div>
+            <div><label>Document Number *</label><input type="text" id="docNumber" placeholder="Enter document number" required></div>
+          </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🖼️ Digital ID Requirements</div>
+            <div class="grid">
+                <div><label for="dobID">Date of Birth *</label><input id="dobID" type="date" required></div>
+                <div>
+                    <label for="genderID">Gender *</label>
+                    <select id="genderID" required>
+                      <option value="">Select</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <label for="photoID">Photo (square recommended) *</label>
+                    <input id="photoID" type="file" accept="image/*" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📅 Visit Duration</div>
+          <div class="grid">
+            <div><label>Check-in Date *</label><input type="date" id="checkin" required></div>
+            <div><label>Check-out Date *</label><input type="date" id="checkout" required></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🗺️ Trip Itinerary</div>
+          <div class="itinerary" id="itinerary"></div>
+          <div style="margin-top:8px"><button type="button" class="add-row" id="addLocation">+ Add Location</button></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📞 Emergency Contacts</div>
+          <div class="emergency" id="emergencyList"></div>
+          <div style="margin-top:8px"><button type="button" class="add-row" id="addEmergency">+ Add Emergency Contact</button></div>
+        </div>
+
+        <div class="footer">
+          <button type="button" class="btn" id="submitAndGenerateBtn">Submit Registration & Generate Digital ID</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="id-generator-section" id="idGeneratorSection" style="display:none;">
+      <div class="id-card">
+        <div class="id-head">
+          <div class="logo">ID</div>
+          <div>
+            <div class="id-title">Digital Tourist ID</div>
+            <div class="id-sub">Smart Tourist Safety</div>
+          </div>
+        </div>
+        <img id="photoPreview" class="id-photo" src="" alt="Photo" />
+        <div class="id-details" id="idDetails">
+          <!-- Details will be injected here -->
+        </div>
+        <div class="qr-meta-wrap">
+          <div class="qr" id="qrcode"></div>
+          <div class="meta" id="idNumberPreview"></div>
+        </div>
+        <button id="downloadBtn" class="btn">Download ID</button>
+      </div>
+    </div>
+
+    <div class="checkin-section" id="checkinSection" style="display:none;">
+      <div class="panel" style="margin:40px auto;max-width:400px;text-align:center;">
+        <h2>Check-in</h2>
+        <p class="muted">Check-in to your current location.</p>
+        <button id="fakeCheckinBtn" class="btn" style="margin:18px 0;">Check In</button>
+        <div id="checkinCards"></div>
+      </div>
+    </div>
+
+    <div class="alerts-section" id="alertsSection" style="display:none;">
+      <div class="panel" style="margin:40px auto;max-width:400px;text-align:center;">
+        <h2>Alerts</h2>
+        <p class="muted">No active alerts. You will see important notifications here.</p>
+      </div>
+    </div>
+
+    <!-- Add section -->
+    <div class="resources-section" id="resourcesSection" style="display:none;">
+      <div class="panel" style="margin:40px auto;max-width:500px;text-align:left;">
+        <h2>Safety Guidelines & Research</h2>
+        <ul style="padding-left:18px;">
+          <li><a href="https://www.incredibleindia.org/" target="_blank">Official Tourism Portal</a></li>
+          <li><a href="https://www.mha.gov.in/" target="_blank">Ministry of Home Affairs - Safety Tips</a></li>
+          <li><a href="https://www.india.gov.in/" target="_blank">Government of India Portal</a></li>
+          <li><a href="https://www.who.int/travel-advice" target="_blank">WHO Travel Advice</a></li>
+        </ul>
+        <p class="muted">Stay informed and safe during your travels!</p>
+      </div>
+    </div>
+
+    <div id="welcomeSection">
+      <div class="welcome-content">
+        <h2>WELCOME TO RAH!</h2>
+        <img src="/i.png" alt="India">
+        <button id="getStartedBtn" class="btn">GET STARTED</button>
+        <button id="loginBtn" class="btn ghost">LOGIN</button>
+        <p>Learn more about safety guidelines</p>
+      </div>
+    </div>
+
+    <div class="panel" style="background:#eaf7ea;color:#2e7d32;text-align:center;margin-bottom:18px;">
+      <strong>Safety Tip of the Day:</strong>
+      <span id="safetyTip">Always keep emergency contacts handy and follow local advisories.</span>
+    </div>
+  </div>
+
+  <div id="modalRoot" style="display:none"></div>
+
+  <script>
+    // === JAVASCRIPT: COMBINED LOGIC ===
+    const itineraryRoot = document.getElementById('itinerary');
+    const emergencyRoot = document.getElementById('emergencyList');
+
+    // Form 1/Itinerary/Emergency Helpers
+    function createItineraryItem(values={location:'', date:'', type:'Hotel'}){
+      const wrap = document.createElement('div');
+      wrap.className='item';
+      wrap.innerHTML = `
+        <div><label class="muted">Location</label><input type="text" class="it-location" placeholder="Enter location" value="${values.location}"></div>
+        <div><label class="muted">Date</label><input type="date" class="it-date" value="${values.date}"></div>
+        <div><label class="muted">Type</label>
+          <select class="it-type">
+            <option>Hotel</option><option>Attraction</option><option>Transit</option><option>Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end">
+          <button class="trash" title="Remove">🗑️</button>
+        </div>
+      `;
+      wrap.querySelector('.it-type').value = values.type || 'Hotel';
+      wrap.querySelector('.trash').addEventListener('click',()=>wrap.remove());
+      itineraryRoot.appendChild(wrap);
+      return wrap;
+    }
+
+    function createEmergencyItem(values={name:'', relation:'', phone:''}){
+      const wrap = document.createElement('div');
+      wrap.className='item';
+      wrap.innerHTML = `
+        <div><label class="muted">Name</label><input type="text" class="ec-name" placeholder="Contact name" value="${values.name}"></div>
+        <div><label class="muted">Relationship</label><input type="text" class="ec-rel" placeholder="Relationship" value="${values.relation}"></div>
+        <div><label class="muted">Phone</label><input type="text" class="ec-phone" placeholder="Phone number" value="${values.phone}"></div>
+        <div style="display:flex;align-items:center;justify-content:flex-end">
+          <button class="trash" title="Remove">🗑️</button>
+        </div>
+      `;
+      wrap.querySelector('.trash').addEventListener('click',()=>wrap.remove());
+      emergencyRoot.appendChild(wrap);
+      return wrap;
+    }
+
+    // initial rows
+    createItineraryItem({date:new Date().toISOString().slice(0,10)});
+    createEmergencyItem();
+
+    document.getElementById('addLocation').addEventListener('click',()=>createItineraryItem({date:new Date().toISOString().slice(0,10)}));
+    document.getElementById('addEmergency').addEventListener('click',()=>createEmergencyItem());
+
+    // Modal Helpers
+    function showModal(html){
+      const root = document.getElementById('modalRoot');
+      root.style.display='block';
+      root.innerHTML = `<div class="modal-backdrop" id="theModal"><div class="modal">${html}</div></div>`;
+      document.getElementById('theModal').addEventListener('click',(e)=>{
+        if(e.target.id==='theModal') closeModal();
+      });
+      const close = document.getElementById('closeModal');
+      if(close) close.addEventListener('click', closeModal);
+    }
+    function closeModal(){
+      const root = document.getElementById('modalRoot');
+      root.style.display='none';
+      root.innerHTML='';
+    }
+    function escapeHtml(unsafe){
+      return unsafe.replace(/[&<>\"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"})[m]; });
+    }
+
+    // === FORM 2 / ID GENERATION HELPERS ===
+    const downloadBtn = document.getElementById('downloadBtn');
+    const photoPreview = document.getElementById('photoPreview');
+    const qrcodeContainer = document.getElementById('qrcode');
+    const idNumberPreview = document.getElementById('idNumberPreview');
+    let currentQR = null;
+    let currentId = '';
+
+    function generate12Digit() {
+      let s = '';
+      for (let i = 0; i < 12; i++) s += Math.floor(Math.random() * 10);
+      return s;
+    }
+
+    function readImageFile(file, cb) {
+      const reader = new FileReader();
+      reader.onload = e => cb(e.target.result);
+      reader.readAsDataURL(file);
+    }
+
+    function updatePreview(data) {
+      // Fill details in aligned rows
+      const detailsHtml = `
+        <div class="id-details-row">
+          <div class="id-label">Name:</div>
+          <div class="id-value">${escapeHtml(data.name)}</div>
+        </div>
+        <div class="id-details-row">
+          <div class="id-label">DOB:</div>
+          <div class="id-value">${escapeHtml(data.dob)}</div>
+        </div>
+        <div class="id-details-row">
+          <div class="id-label">Gender:</div>
+          <div class="id-value">${escapeHtml(data.gender)}</div>
+        </div>
+        <div class="id-details-row">
+          <div class="id-label">ID:</div>
+          <div class="id-value">${escapeHtml(data.id)}</div>
+        </div>
+      `;
+      document.getElementById('idDetails').innerHTML = detailsHtml;
+      document.getElementById('idNumberPreview').textContent = "ID Number: " + data.id;
+      document.getElementById('photoPreview').src = data.photo || '';
+
+      // generate QR for ID
+      qrcodeContainer.innerHTML = '';
+      const qrPayload = JSON.stringify({ id: data.id, name: data.name, dob: data.dob });
+      currentQR = new QRCode(qrcodeContainer, {
+        text: qrPayload,
+        width: 96,
+        height: 96,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      downloadBtn.disabled = false;
+      document.getElementById('stat-ids').innerText = parseInt(document.getElementById('stat-ids').innerText || '0') + 1;
+    }
+
+    // === MAIN SUBMISSION FUNCTION ===
+    document.getElementById('submitAndGenerateBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      // --- 1. REGISTRATION VALIDATION & DATA GATHERING ---
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const entryPoint = document.getElementById('entryPoint').value;
+      const docType = document.getElementById('docType').value;
+      const docNumber = document.getElementById('docNumber').value.trim();
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const dob = document.getElementById('dobID').value;
+      const gender = document.getElementById('genderID').value;
+      const file = document.getElementById('photoID').files && document.getElementById('photoID').files[0];
+
+      // Basic validation combined
+      const errors = [];
+      if (!fullName) errors.push('Full name is required');
+      if (!email) errors.push('Email is required');
+      if (!docType) errors.push('Document type is required');
+      if (!dob) errors.push('Date of Birth is required for ID Generation');
+      if (!gender) errors.push('Gender is required for ID Generation');
+      if (!file) errors.push('Photo is required for ID Generation');
+      if (!phone) errors.push('Phone is required');
+      if (!docNumber) errors.push('Document number is required');
+      if (!checkin) errors.push('Check-in date required');
+      if (!checkout) errors.push('Check-out date required');
+
+      if (errors.length) {
+        showModal(`<strong>Validation failed:</strong><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul>`);
+        return;
+      }
+
+      // Collect full registration payload
+      const itinerary = Array.from(itineraryRoot.querySelectorAll('.item')).map(it => ({
+        location: it.querySelector('.it-location').value.trim(),
+        date: it.querySelector('.it-date').value,
+        type: it.querySelector('.it-type').value
+      })).filter(i => i.location || i.date || i.type);
+
+      const emergency = Array.from(emergencyRoot.querySelectorAll('.item')).map(it => ({
+        name: it.querySelector('.ec-name').value.trim(),
+        relationship: it.querySelector('.ec-rel').value.trim(),
+        phone: it.querySelector('.ec-phone').value.trim()
+      })).filter(e => e.name || e.phone);
+
+      const payload = { 
+        fullName, email, phone, entryPoint, docType, docNumber, checkin, checkout, itinerary, emergency,
+        dob, gender
+      };
+
+      // --- 2. DIGITAL ID GENERATION ---
+      currentId = generate12Digit();
+
+      readImageFile(file, dataUrl => {
+        updatePreview({ name: fullName, dob, gender, id: currentId, photo: dataUrl });
+
+        // Fade out registration form and show ID section
+        document.getElementById('registrationForm').classList.add('fade-out');
+        setTimeout(() => {
+          document.getElementById('registrationForm').style.display = 'none';
+          document.getElementById('idGeneratorSection').style.display = 'block';
+        }, 600);
+
+        // Update stats
+        document.getElementById('stat-tourists').innerText = parseInt(document.getElementById('stat-tourists').innerText || '0') + 1;
+
+        showModal(`<h3>Registration Complete & Digital ID Minted! 🎉</h3><p class="muted">Registration submitted and a new Digital Tourist ID <b>#${currentId}</b> has been generated and is displayed below.</p><div style="text-align:right;margin-top:12px"><button class='btn' id='closeModal'>Close</button></div>`);
+
+        document.getElementById('idGeneratorSection').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Download PNG of the ID card using html2canvas
+    downloadBtn.addEventListener('click', () => {
+      html2canvas(document.querySelector('.id-card'), {backgroundColor: null, scale: 2}).then(canvas => {
+        canvas.toBlob(function(blob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `digital_id_${currentId}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }, 'image/png', 1);
+      }).catch(err => {
+        console.error(err);
+        alert('Could not generate image. See console for details.');
+      });
+    });
+
+    // TAB FUNCTIONALITY
+    const tabs = document.querySelectorAll('.tab');
+    const sections = {
+      registration: document.getElementById('registrationForm'),
+      digitalid: document.getElementById('idGeneratorSection'),
+      checkin: document.getElementById('checkinSection'),
+      alerts: document.getElementById('alertsSection'),
+      resources: document.getElementById('resourcesSection')
+    };
+
+    function showTab(tab) {
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+      Object.keys(sections).forEach(key => sections[key].style.display = 'none');
+      sections[tab].style.display = 'block';
+    }
+
+    // Initial state: show registration only
+    showTab('registration');
+
+    tabs.forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        showTab(tabBtn.getAttribute('data-tab'));
+      });
+    });
+
+    // When registration is submitted, switch to Digital ID tab
+    document.getElementById('submitAndGenerateBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      // --- 1. REGISTRATION VALIDATION & DATA GATHERING ---
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const entryPoint = document.getElementById('entryPoint').value;
+      const docType = document.getElementById('docType').value;
+      const docNumber = document.getElementById('docNumber').value.trim();
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const dob = document.getElementById('dobID').value;
+      const gender = document.getElementById('genderID').value;
+      const file = document.getElementById('photoID').files && document.getElementById('photoID').files[0];
+
+      // Basic validation combined
+      const errors = [];
+      if (!fullName) errors.push('Full name is required');
+      if (!email) errors.push('Email is required');
+      if (!docType) errors.push('Document type is required');
+      if (!dob) errors.push('Date of Birth is required for ID Generation');
+      if (!gender) errors.push('Gender is required for ID Generation');
+      if (!file) errors.push('Photo is required for ID Generation');
+      if (!phone) errors.push('Phone is required');
+      if (!docNumber) errors.push('Document number is required');
+      if (!checkin) errors.push('Check-in date required');
+      if (!checkout) errors.push('Check-out date required');
+
+      if (errors.length) {
+        showModal(`<strong>Validation failed:</strong><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul>`);
+        return;
+      }
+
+      // Collect full registration payload
+      const itinerary = Array.from(itineraryRoot.querySelectorAll('.item')).map(it => ({
+        location: it.querySelector('.it-location').value.trim(),
+        date: it.querySelector('.it-date').value,
+        type: it.querySelector('.it-type').value
+      })).filter(i => i.location || i.date || i.type);
+
+      const emergency = Array.from(emergencyRoot.querySelectorAll('.item')).map(it => ({
+        name: it.querySelector('.ec-name').value.trim(),
+        relationship: it.querySelector('.ec-rel').value.trim(),
+        phone: it.querySelector('.ec-phone').value.trim()
+      })).filter(e => e.name || e.phone);
+
+      const payload = { 
+        fullName, email, phone, entryPoint, docType, docNumber, checkin, checkout, itinerary, emergency,
+        dob, gender
+      };
+
+      // --- 2. DIGITAL ID GENERATION ---
+      currentId = generate12Digit();
+
+      readImageFile(file, dataUrl => {
+        updatePreview({ name: fullName, dob, gender, id: currentId, photo: dataUrl });
+        document.getElementById('registrationForm').classList.add('fade-out');
+        setTimeout(() => {
+          showTab('digitalid');
+        }, 600);
+
+        // Update stats
+        document.getElementById('stat-tourists').innerText = parseInt(document.getElementById('stat-tourists').innerText || '0') + 1;
+
+        showModal(`<h3>Registration Complete & Digital ID Minted! 🎉</h3><p class="muted">Registration submitted and a new Digital Tourist ID <b>#${currentId}</b> has been generated and is displayed below.</p><div style="text-align:right;margin-top:12px"><button class='btn' id='closeModal'>Close</button></div>`);
+
+        document.getElementById('idGeneratorSection').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Welcome page logic
+    document.getElementById('getStartedBtn').onclick = function() {
+      document.getElementById('welcomeSection').style.display = 'none';
+      document.querySelector('.tabs').style.display = 'flex';
+      document.getElementById('registrationForm').style.display = 'block';
+      showTab('registration');
+    };
+
+    let loggedInUser = null;
+
+    document.getElementById('loginBtn').onclick = function() {
+      loggedInUser = "Aditya Raj Sharma"; // Example name
+      document.getElementById('userName').textContent = loggedInUser;
+      document.getElementById('userBanner').style.display = 'block';
+      document.getElementById('welcomeSection').style.display = 'none';
+      document.querySelector('.tabs').style.display = 'flex';
+      document.getElementById('registrationForm').style.display = 'block';
+      showTab('registration');
+    };
+
+    document.getElementById('logoutBtn').onclick = function() {
+      loggedInUser = null;
+      document.getElementById('userBanner').style.display = 'none';
+      document.getElementById('welcomeSection').style.display = 'flex';
+      document.querySelector('.tabs').style.display = 'none';
+      document.getElementById('registrationForm').style.display = 'none';
+    };
+
+    // Fake check-in feature
+    const checkinCards = document.getElementById('checkinCards');
+    let checkinCount = 0;
+
+    document.getElementById('fakeCheckinBtn').onclick = function() {
+      checkinCount++;
+      document.getElementById('stat-checkins').innerText = checkinCount;
+      const card = document.createElement('div');
+      card.className = 'panel';
+      card.style.margin = '12px 0';
+      card.innerHTML = `
+        <div style="font-weight:700;font-size:15px;">Checked in at: Taj Mahal</div>
+        <div style="color:var(--muted);font-size:13px;">${new Date().toLocaleString()}</div>
+        <div style="margin-top:8px;"><span style="background:#eaf7ea;color:#2e7d32;padding:4px 10px;border-radius:8px;font-size:13px;">Success</span></div>
+      `;
+      checkinCards.prepend(card);
+    };
+
+    // Custom alert feature
+    const alertCards = document.getElementById('alertCards');
+    let alertCount = 0;
+
+    document.getElementById('addAlertBtn').onclick = function() {
+      alertCount++;
+      document.getElementById('stat-alerts').innerText = alertCount;
+      const card = document.createElement('div');
+      card.className = 'panel';
+      card.style.margin = '12px 0';
+      card.style.background = '#ffeaea';
+      card.style.color = '#a94442';
+      card.innerHTML = `
+        <div style="font-weight:700;font-size:15px;">Alert #${alertCount}: Severe Weather Warning</div>
+        <div style="color:#a94442;font-size:13px;">${new Date().toLocaleString()}</div>
+        <div style="margin-top:8px;"><span style="background:#fff3cd;color:#856404;padding:4px 10px;border-radius:8px;font-size:13px;">Active</span></div>
+      `;
+      alertCards.prepend(card);
+    };
+  </script>
+</body>
+</html>
